@@ -90,6 +90,10 @@ class ConanMissingSystemLibs(ConanClientTestCase):
                 pass
         """)
 
+    def setUp(self):
+        super(ConanMissingSystemLibs, self).setUp()
+        self.conan(["user"])
+
     class OSBuildInfo(object):
         def __init__(self, includes, link_libs, shlibs_bases, function):
             self.includes = includes
@@ -140,6 +144,11 @@ class ConanMissingSystemLibs(ConanClientTestCase):
         tools.save(os.path.join(subdir, "CMakeLists.txt"), content=self.cmakelists.format(name=name, link_lib=" ".join(osbuildinfo.libs)))
         tools.save(os.path.join(subdir, "simplelib.c"), content=self.source_c.format(name=name, includes="\n".join("#include <{}>".format(include) for include in osbuildinfo.includes), function_call=osbuildinfo.function))
         tools.save(os.path.join(subdir, "test_package", "conanfile.py"), content=self.conanfile_test)
+
+    def tearDown(self):
+        o = self.conan(["remove", "simplelib", "-f"])
+        o2 = self.conan(["remove", "dep", "-f"])
+        o3 = self.conan(["remove", "lib", "-f"])
 
     def test_no_system_lib(self):
         osbuildinfo = self.OSBuildInfo([], [], [], "42")
